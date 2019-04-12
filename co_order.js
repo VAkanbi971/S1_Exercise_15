@@ -35,6 +35,15 @@ window.addEventListener("load", function () {
 
       //calculate
       calcOrder();
+
+      //create event handlers for the web form
+      orderForm.elements.model.onchange = calcOrder;
+      orderForm.elements.qty.onchange = calcOrder;
+
+      var planOptions = document.querySelectorAll('input[name="protection"]');
+      for (var i = 0; i < planOptions.length; i++) {
+            planOptions[i].onclick = calcOrder;
+      }
 });
 
 function calcOrder() {
@@ -48,9 +57,39 @@ function calcOrder() {
 
       //initial cost = model cost x quantity
       var initialCost = mCost * quantity;
-      orderForm.elements.initialCost.value = initialCost;
+      orderForm.elements.initialCost.value = formatUSCurrency(initialCost);
 
       // reteive cost of users protection plan
       var pCost = document.querySelector('input[name="protection"]:checked').value * quantity;
-      orderForm.elements.protectionCost.value = pCost;
+      orderForm.elements.protectionCost.value = formatNumber(pCost, 2);
+
+      //clac order sub total
+      orderForm.elements.subtotal.value = formatNumber(initialCost + pCost, 2);
+
+      //calc sales tax
+      var salesTax = 0.05 * (initialCost + pCost);
+      orderForm.elements.salesTax.value = formatNumber(salesTax, 2);
+
+      //calaculate cost of whole order
+      var totalCost = initialCost + pCost + salesTax;
+      orderForm.elements.totalCost.value = formatUSCurrency(totalCost);
+
+      //store order details
+      orderForm.elements.modelName.value = orderForm.elements.model.options[mIndex].text;
+
+      orderForm.elements.protectionName.value = document.querySelector('input[name="protection"]:checked').nextSibling.nodeValue;
+}
+
+function formatNumber(val, decimals) {
+      return val.toLocaleString(undefined, {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+      });
+}
+
+function formatUSCurrency(val) {
+      return val.toLocaleString('en-us', {
+            style: "currency",
+            currency: "USD"
+      });
 }
